@@ -1,1 +1,3 @@
 .vscode/settings.json
+dist/*
+lightwave.egg-info/*
