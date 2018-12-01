@@ -1,4 +1,5 @@
-.vscode/settings.json
+.vscode/*
 build/*
 dist/*
 lightwave.egg-info/*
+*.pyc
