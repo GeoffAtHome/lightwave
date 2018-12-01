@@ -16,10 +16,5 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     keywords=['Lightwave', 'LightwaveRF',
               'Lightwave WiFiLink', 'Lightwave Link'],
-    zip_safe=False,
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: MIT License",
-        "Operating System :: OS Independent",
-    ],
+    zip_safe=False
 )
