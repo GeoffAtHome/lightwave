@@ -11,7 +11,6 @@ _LOGGER = logging.getLogger(__name__)
 class LWLink():
     """LWLink provides a communication link with the LightwaveRF hub."""
 
-    LWRF_REGISTRATION = '100,!F*p'
     SOCKET_TIMEOUT = 2.0
     RX_PORT = 9761
     TX_PORT = 9760
@@ -32,6 +31,11 @@ class LWLink():
         if LWLink.thread is None or not self.thread.isAlive():
             LWLink.thread = threading.Thread(target=self._send_queue)
             LWLink.thread.start()
+
+    def register(self):
+        """Create the message to register client."""
+        msg = '%d,!F*p' % (next(self.transaction_id))
+        self._send_message(msg)
 
     def turn_on_light(self, device_id, name):
         """Create the message to turn light on."""
@@ -87,7 +91,7 @@ class LWLink():
                         response = response.decode('UTF-8')
                         if "XNot yet registered." in response:
                             _LOGGER.error("Not yet registered")
-                            self._send_message(LWLink.LWRF_REGISTRATION)
+                            self.register()
                             result = True
                             break
 
