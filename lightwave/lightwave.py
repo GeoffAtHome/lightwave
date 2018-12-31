@@ -1,5 +1,5 @@
-import queue
-import threading
+from queue import Queue
+from threading import Thread
 import socket
 import time
 import logging
@@ -15,22 +15,20 @@ class LWLink():
     RX_PORT = 9761
     TX_PORT = 9760
 
-    the_queue = queue.Queue()
-    thread = None
-    link_ip = ''
-    transaction_id = cycle(range(1,1000))
-
     def __init__(self, link_ip=None):
         """Initialise the component."""
         if link_ip is not None:
-            LWLink.link_ip = link_ip
+            self.link_ip = link_ip
+        self.transaction_id = cycle(range(1,1000))
+        self.the_queue = Queue()
+        self.thread = None
 
     def _send_message(self, msg):
         """Add message to queue and start processing the queue."""
-        LWLink.the_queue.put_nowait(msg)
-        if LWLink.thread is None or not self.thread.isAlive():
-            LWLink.thread = threading.Thread(target=self._send_queue)
-            LWLink.thread.start()
+        self.the_queue.put_nowait(msg)
+        if self.thread is None or not self.thread.isAlive():
+            self.thread = Thread(target=self._send_queue)
+            self.thread.start()
 
     def register(self):
         """Create the message to register client."""
@@ -63,8 +61,8 @@ class LWLink():
 
     def _send_queue(self):
         """If the queue is not empty, process the queue."""
-        while not LWLink.the_queue.empty():
-            self._send_reliable_message(LWLink.the_queue.get_nowait())
+        while not self.the_queue.empty():
+            self._send_reliable_message(self.the_queue.get_nowait())
 
     def _send_reliable_message(self, msg):
         """Send msg to LightwaveRF hub."""
@@ -79,12 +77,12 @@ class LWLink():
                     socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 read_sock.setsockopt(socket.SOL_SOCKET,
                                      socket.SO_BROADCAST, 1)
-                read_sock.settimeout(LWLink.SOCKET_TIMEOUT)
-                read_sock.bind(('0.0.0.0', LWLink.RX_PORT))
+                read_sock.settimeout(self.SOCKET_TIMEOUT)
+                read_sock.bind(('0.0.0.0', self.RX_PORT))
                 while max_retries:
                     max_retries -= 1
                     write_sock.sendto(msg.encode(
-                        'UTF-8'), (LWLink.link_ip, LWLink.TX_PORT))
+                        'UTF-8'), (self.link_ip, self.TX_PORT))
                     result = False
                     while True:
                         response, dummy = read_sock.recvfrom(1024)
