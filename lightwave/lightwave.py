@@ -32,17 +32,17 @@ class LWLink():
 
     def register(self):
         """Create the message to register client."""
-        msg = '%d,!F*p' % (next(self.transaction_id))
+        msg = '!F*p' % (next(self.transaction_id))
         self._send_message(msg)
 
     def turn_on_light(self, device_id, name):
         """Create the message to turn light on."""
-        msg = '%d,!%sFdP32|Turn On|%s' % (next(self.transaction_id), device_id, name)
+        msg = '!%sFdP32|Turn On|%s' % (device_id, name)
         self._send_message(msg)
 
     def turn_on_switch(self, device_id, name):
         """Create the message to turn switch on."""
-        msg = '%d,!%sF1|Turn On|%s' % (next(self.transaction_id), device_id, name)
+        msg = '!%sF1|Turn On|%s' % (device_id, name)
         self._send_message(msg)
 
     def turn_on_with_brightness(self, device_id, name, brightness):
@@ -50,13 +50,13 @@ class LWLink():
         brightness_value = round((brightness * 31) / 255) + 1
         # F1 = Light on and F0 = light off. FdP[0..32] is brightness. 32 is
         # full. We want that when turning the light on.
-        msg = '%d,!%sFdP%d|Lights %d|%s' % (
-            next(self.transaction_id), device_id, brightness_value, brightness_value, name)
+        msg = '!%sFdP%d|Lights %d|%s' % (
+            device_id, brightness_value, brightness_value, name)
         self._send_message(msg)
 
     def turn_off(self, device_id, name):
         """Create the message to turn light or switch off."""
-        msg = "%d,!%sF0|Turn Off|%s" % (next(self.transaction_id), device_id, name)
+        msg = "!%sF0|Turn Off|%s" % (device_id, name)
         self._send_message(msg)
 
     def _send_queue(self):
@@ -68,6 +68,8 @@ class LWLink():
         """Send msg to LightwaveRF hub."""
         result = False
         max_retries = 15
+        trans_id = next(self.transaction_id)
+        msg = '%d,%s' % (trans_id, msg)
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) \
                     as write_sock, \
