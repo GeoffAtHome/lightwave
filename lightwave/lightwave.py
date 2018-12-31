@@ -32,7 +32,7 @@ class LWLink():
 
     def register(self):
         """Create the message to register client."""
-        msg = '!F*p' % (next(self.transaction_id))
+        msg = '!F*p'
         self._send_message(msg)
 
     def turn_on_light(self, device_id, name):
@@ -89,7 +89,7 @@ class LWLink():
                     while True:
                         response, dummy = read_sock.recvfrom(1024)
                         response = response.decode('UTF-8')
-                        if "XNot yet registered." in response:
+                        if "Not yet registered." in response:
                             _LOGGER.error("Not yet registered")
                             self.register()
                             result = True
@@ -99,6 +99,7 @@ class LWLink():
                             result = True
                             break
                         if response.startswith('%d,ERR' % trans_id):
+                            _LOGGER.error(response)
                             break
 
                     if result:
