@@ -3,6 +3,7 @@ import threading
 import socket
 import time
 import logging
+from itertools import cycle
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -18,6 +19,7 @@ class LWLink():
     the_queue = queue.Queue()
     thread = None
     link_ip = ''
+    transaction_id = cycle(range(1,1000))
 
     def __init__(self, link_ip=None):
         """Initialise the component."""
@@ -33,12 +35,12 @@ class LWLink():
 
     def turn_on_light(self, device_id, name):
         """Create the message to turn light on."""
-        msg = '321,!%sFdP32|Turn On|%s' % (device_id, name)
+        msg = '%d,!%sFdP32|Turn On|%s' % (next(self.transaction_id), device_id, name)
         self._send_message(msg)
 
     def turn_on_switch(self, device_id, name):
         """Create the message to turn switch on."""
-        msg = '321,!%sF1|Turn On|%s' % (device_id, name)
+        msg = '%d,!%sF1|Turn On|%s' % (next(self.transaction_id), device_id, name)
         self._send_message(msg)
 
     def turn_on_with_brightness(self, device_id, name, brightness):
@@ -46,13 +48,13 @@ class LWLink():
         brightness_value = round((brightness * 31) / 255) + 1
         # F1 = Light on and F0 = light off. FdP[0..32] is brightness. 32 is
         # full. We want that when turning the light on.
-        msg = '321,!%sFdP%d|Lights %d|%s' % (
-            device_id, brightness_value, brightness_value, name)
+        msg = '%d,!%sFdP%d|Lights %d|%s' % (
+            next(self.transaction_id), device_id, brightness_value, brightness_value, name)
         self._send_message(msg)
 
     def turn_off(self, device_id, name):
         """Create the message to turn light or switch off."""
-        msg = "321,!%sF0|Turn Off|%s" % (device_id, name)
+        msg = "%d,!%sF0|Turn Off|%s" % (next(self.transaction_id), device_id, name)
         self._send_message(msg)
 
     def _send_queue(self):
