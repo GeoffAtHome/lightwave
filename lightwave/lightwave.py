@@ -95,11 +95,10 @@ class LWLink():
                             result = True
                             break
 
-                        response = response.split(',')[1]
-                        if response.startswith('OK'):
+                        if response.startswith('%d,OK' % trans_id):
                             result = True
                             break
-                        if response.startswith('ERR'):
+                        if response.startswith('%d,ERR' % trans_id):
                             break
 
                     if result:
