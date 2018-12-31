@@ -35,6 +35,11 @@ class LWLink():
         msg = '!F*p'
         self._send_message(msg)
 
+    def deregister_all(self):
+        """Create the message to deregister all clients."""
+        msg = '!F*xP'
+        self._send_message(msg)
+
     def turn_on_light(self, device_id, name):
         """Create the message to turn light on."""
         msg = '!%sFdP32|Turn On|%s' % (device_id, name)
