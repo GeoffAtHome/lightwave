@@ -1,9 +1,9 @@
-from queue import Queue
-from threading import Thread
+import logging
 import socket
 import time
-import logging
 from itertools import cycle
+from queue import Queue
+from threading import Thread
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,12 +42,12 @@ class LWLink():
 
     def turn_on_light(self, device_id, name):
         """Create the message to turn light on."""
-        msg = '!%sFdP32|Turn On|%s' % (device_id, name)
+        msg = "!%sFdP32|Turn On|%s" % (device_id, name)
         self._send_message(msg)
 
     def turn_on_switch(self, device_id, name):
         """Create the message to turn switch on."""
-        msg = '!%sF1|Turn On|%s' % (device_id, name)
+        msg = "!%sF1|Turn On|%s" % (device_id, name)
         self._send_message(msg)
 
     def turn_on_with_brightness(self, device_id, name, brightness):
@@ -55,7 +55,7 @@ class LWLink():
         brightness_value = round((brightness * 31) / 255) + 1
         # F1 = Light on and F0 = light off. FdP[0..32] is brightness. 32 is
         # full. We want that when turning the light on.
-        msg = '!%sFdP%d|Lights %d|%s' % (
+        msg = "!%sFdP%d|Lights %d|%s" % (
             device_id, brightness_value, brightness_value, name)
         self._send_message(msg)
 
@@ -74,7 +74,7 @@ class LWLink():
         result = False
         max_retries = 15
         trans_id = next(self.transaction_id)
-        msg = '%d,%s' % (trans_id, msg)
+        msg = "%d,%s" % (trans_id, msg)
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) \
                     as write_sock, \
@@ -100,10 +100,10 @@ class LWLink():
                             result = True
                             break
 
-                        if response.startswith('%d,OK' % trans_id):
+                        if response.startswith("%d,OK" % trans_id):
                             result = True
                             break
-                        if response.startswith('%d,ERR' % trans_id):
+                        if response.startswith("%d,ERR" % trans_id):
                             _LOGGER.error(response)
                             break
 
