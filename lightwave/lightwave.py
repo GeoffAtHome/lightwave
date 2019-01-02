@@ -1,3 +1,4 @@
+"""Python library to provide reliable communication link with LightWaveRF lights and switches."""
 import logging
 import socket
 import time
@@ -19,7 +20,7 @@ class LWLink():
         """Initialise the component."""
         if link_ip is not None:
             self.link_ip = link_ip
-        self.transaction_id = cycle(range(1,1000))
+        self.transaction_id = cycle(range(1, 1000))
         self.the_queue = Queue()
         self.thread = None
 
