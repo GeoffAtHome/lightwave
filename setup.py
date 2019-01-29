@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='lightwave',
-    version='0.16',
+    version='0.17',
     description='Python library to provide a realiable communication link with LightWaveRF lights and switches.',
     url='https://github.com/GeoffAtHome/lightwave',
     author='Geoff Soord',

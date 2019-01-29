@@ -15,7 +15,7 @@ class LWLink():
     SOCKET_TIMEOUT = 2.0
     RX_PORT = 9761
     TX_PORT = 9760
-    
+
     link_ip = None
     transaction_id = cycle(range(1, 1000))
     the_queue = Queue()
@@ -109,6 +109,8 @@ class LWLink():
                         if response.startswith("%d,ERR" % trans_id):
                             _LOGGER.error(response)
                             break
+
+                        _LOGGER.info(response)
 
                     if result:
                         break
