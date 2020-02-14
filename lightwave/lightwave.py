@@ -67,6 +67,11 @@ class LWLink():
         msg = "!%sF0|Turn Off|%s" % (device_id, name)
         self._send_message(msg)
 
+    def set_temperature(self, device_id,  temp, name):
+        """Create the message to set the trv target temp."""
+        msg = '!%sF*tP%s|Set Target|%s' % (device_id, round(temp,1), name)
+        self._send_message(msg)
+
     def _send_queue(self):
         """If the queue is not empty, process the queue."""
         while not LWLink.the_queue.empty():
@@ -84,6 +89,8 @@ class LWLink():
                     socket.socket(socket.AF_INET, socket.SOCK_DGRAM) \
                     as read_sock:
                 write_sock.setsockopt(
+                    socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                read_sock.setsockopt(
                     socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 read_sock.setsockopt(socket.SOL_SOCKET,
                                      socket.SO_BROADCAST, 1)
