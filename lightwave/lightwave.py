@@ -1,4 +1,5 @@
 """Python library to provide reliable communication link with LightWaveRF lights and switches."""
+import json
 import logging
 import socket
 import time
@@ -17,6 +18,8 @@ class LWLink():
     TX_PORT = 9760
 
     link_ip = None
+    proxy_ip = None
+    proxy_port = None
     transaction_id = cycle(range(1, 1000))
     the_queue = Queue()
     thread = None
@@ -67,10 +70,50 @@ class LWLink():
         msg = "!%sF0|Turn Off|%s" % (device_id, name)
         self._send_message(msg)
 
-    def set_temperature(self, device_id,  temp, name):
+    def set_temperature(self, device_id, temp, name):
         """Create the message to set the trv target temp."""
-        msg = '!%sF*tP%s|Set Target|%s' % (device_id, round(temp,1), name)
+        msg = '!%sF*tP%s|Set Target|%s' % (device_id, round(temp, 1), name)
         self._send_message(msg)
+
+    def set_trv_proxy(self, proxy_ip, proxy_port):
+        """Set Lightwave TRV proxy ip/port."""
+        self.proxy_ip = proxy_ip
+        self.proxy_port = proxy_port
+
+    def read_trv_status(self, serial):
+        """Read Lightwave TRV status from the proxy."""
+        targ = temp = battery = trv_output = None
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+                sock.settimeout(2.0)
+                msg = serial.encode("UTF-8")
+                sock.sendto(msg, (self.proxy_ip, self.proxy_port))
+                response, dummy = sock.recvfrom(1024)
+                msg = response.decode()
+                j = json.loads(msg)
+                if "cTemp" in j.keys():
+                    temp = j["cTemp"]
+                if "cTarg" in j.keys():
+                    targ = j["cTarg"]
+                if "batt" in j.keys():
+                    # convert the voltage to a rough percentage
+                    battery = int((j["batt"] - 2.22) * 110)
+                if "output" in j.keys():
+                    trv_output = j["output"]
+                if "error" in j.keys():
+                    _LOGGER.warning("TRV proxy error: %s", j["error"])
+
+        except socket.timeout:
+            _LOGGER.warning("TRV proxy not responing")
+
+        except socket.error as ex:
+            _LOGGER.warning("TRV proxy error %s", ex)
+
+        except json.JSONDecodeError:
+            _LOGGER.warning("TRV proxy JSON error")
+
+        return (temp, targ, battery, trv_output)
+
 
     def _send_queue(self):
         """If the queue is not empty, process the queue."""
