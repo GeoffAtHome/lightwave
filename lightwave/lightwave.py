@@ -114,7 +114,6 @@ class LWLink():
 
         return (temp, targ, battery, trv_output)
 
-
     def _send_queue(self):
         """If the queue is not empty, process the queue."""
         while not LWLink.the_queue.empty():
