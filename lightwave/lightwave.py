@@ -125,6 +125,7 @@ class LWLink():
         max_retries = 15
         trans_id = next(LWLink.transaction_id)
         msg = "%d,%s" % (trans_id, msg)
+        err = None
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) \
                     as write_sock, \
@@ -156,7 +157,8 @@ class LWLink():
                             result = True
                             break
                         if response.startswith("%d,ERR" % trans_id):
-                            _LOGGER.error(response)
+                            _LOGGER.info(response)
+                            err = response
                             break
 
                         _LOGGER.info(response)
@@ -177,5 +179,8 @@ class LWLink():
         if result:
             _LOGGER.info("LW broker OK!")
         else:
-            _LOGGER.error("LW broker fail!")
+            if err:
+                _LOGGER.error("LW broker fail (%s)!", err)
+            else:
+                _LOGGER.error("LW broker fail!")
         return result
