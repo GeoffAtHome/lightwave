@@ -138,7 +138,7 @@ class LWLink:
         if "cTemp" in trv.keys():
             temp = trv["cTemp"]
         if "cTarg" in trv.keys():
-            targ = trv["cTag"]
+            targ = trv["cTarg"]
         if "batt" in trv.keys():
             # convert the voltage to a rough percentage
             battery = int((trv["batt"] - 2.22) * 110)
