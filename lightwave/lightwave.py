@@ -89,7 +89,7 @@ class LWLink:
         self.proxy_port = proxy_port
         self.use_proxy = True
 
-    def read_trv_status_local(self, serial):
+    def read_trv_local(self, serial):
         """Read Lightwave TRV status from local listener."""
 
         if serial not in self.trv_data:
