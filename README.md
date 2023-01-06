@@ -70,7 +70,9 @@ Where:
 * **temp** is the target temperature (0.5 increments)
 * **name** is the text that will be displayed on the hub.
 ## TRV Proxy
-To read the TRV status (current temperature, target_temperature, battery status and current output) a [Lightwave TRV Proxy](https://github.com/ColinRobbins/Homeassistant-Lightwave-TRV) is needed. 
+The Proxy is now optional.  A built in listener is now available via the async function ```LW_listen()```.
+
+Alternativly, to read the TRV status (current temperature, target_temperature, battery status and current output) a [Lightwave TRV Proxy](https://github.com/ColinRobbins/Homeassistant-Lightwave-TRV) can be used. 
 To use the proxy:
 ```
 set_trv_proxy (proxy_ip, proxy_port)
