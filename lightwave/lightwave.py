@@ -26,7 +26,9 @@ class LWLink:
     the_queue = Queue()
     thread = None
     use_proxy = False
+    use_udp = False
     trv_data = {}
+    trv_response = None
 
     def __init__(self, link_ip=None):
         """Initialise the component."""
@@ -152,6 +154,22 @@ class LWLink:
         while not LWLink.the_queue.empty():
             self._send_reliable_message(LWLink.the_queue.get_nowait())
 
+    def _check_response(self, response, trans_id):
+        """Check response fron lightwave"""
+
+        if "Not yet registered." in response:
+            _LOGGER.error("Not yet registered")
+            self.register()
+            return True
+
+        if response.startswith("%d,OK" % trans_id):
+            _LOGGER.debug("got OK")
+            return True
+
+        _LOGGER.error("error %s", response)
+
+        return False
+
     def _send_reliable_message(self, msg):
         """Send msg to LightwaveRF hub."""
         result = False
@@ -166,39 +184,40 @@ class LWLink:
                 socket.AF_INET, socket.SOCK_DGRAM
             ) as read_sock:
                 write_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                read_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-                read_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-                read_sock.settimeout(self.SOCKET_TIMEOUT)
-                read_sock.bind(("0.0.0.0", self.RX_PORT))
+
+                if self.use_udp is False:
+                    read_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+                    read_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+                    read_sock.settimeout(self.SOCKET_TIMEOUT)
+                    read_sock.bind(("0.0.0.0", RX_PORT))
+
                 while max_retries:
                     max_retries -= 1
-                    write_sock.sendto(
-                        msg.encode("UTF-8"), (LWLink.link_ip, self.TX_PORT)
-                    )
+                    self.trv_response = None
+                    write_sock.sendto(msg.encode("UTF-8"), (LWLink.link_ip, TX_PORT))
                     result = False
-                    while True:
-                        response, dummy = read_sock.recvfrom(1024)
-                        response = response.decode("UTF-8")
-                        if "Not yet registered." in response:
-                            _LOGGER.error("Not yet registered")
-                            self.register()
-                            result = True
-                            break
 
-                        if response.startswith("%d,OK" % trans_id):
-                            result = True
-                            break
-                        if response.startswith("%d,ERR" % trans_id):
-                            _LOGGER.info(response)
-                            err = response
-                            break
+                    if self.use_udp is True:
+                        time.sleep(1)
+                        response = self.trv_response
+                        if response is None:
+                            result = False
+                        else:
+                            result = self._check_response(response, trans_id)
 
-                        _LOGGER.info(response)
+                    else:
+                        while True:
+                            response, dummy = read_sock.recvfrom(1024)
+                            response = response.decode("UTF-8")
+                            result = self._check_response(response, trans_id)
+                            if result:
+                                break
 
                     if result:
                         break
 
-                    time.sleep(0.25)
+                    if self.use_udp is False:
+                        time.sleep(0.25)
 
         except socket.timeout:
             _LOGGER.error("LW broker timeout!")
@@ -220,6 +239,7 @@ class LWLink:
     async def LW_listen(self):
         """Run the LW Proxy."""
         loop = asyncio.get_running_loop()
+        self.use_udp = True
 
         _LOGGER.info("Starting Lightwave UDP listener")
 
@@ -246,10 +266,12 @@ class TrvCollector:
         """Manage receipt of a UDP packet from Lightwave."""
         message = data.decode()
         stripped = message[2:]
-        data = json.loads(stripped)
+        try:
+            data = json.loads(stripped)
 
-        if "serial" in data.keys():
-            serial = data["serial"]
-            self.link.trv_data[serial] = data
+            if "serial" in data.keys():
+                serial = data["serial"]
+                self.link.trv_data[serial] = data
 
-            _LOGGER.debug("TRV Broadcast from %s", serial)
+        except json.JSONDecodeError:
+            self.link.trv_response = message
