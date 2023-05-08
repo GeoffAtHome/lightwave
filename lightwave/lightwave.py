@@ -166,7 +166,8 @@ class LWLink:
             _LOGGER.debug("got OK")
             return True
 
-        _LOGGER.error("error %s", response)
+        if response.startswith("%d,ERR" % trans_id):
+            _LOGGER.error("error %s", response)
 
         return False
 
@@ -228,7 +229,7 @@ class LWLink:
             raise
 
         if result:
-            _LOGGER.info("LW broker OK!")
+            _LOGGER.debug("LW broker OK!")
         else:
             if err:
                 _LOGGER.error("LW broker fail (%s)!", err)
