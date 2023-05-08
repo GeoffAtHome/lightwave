@@ -166,7 +166,8 @@ class LWLink:
             _LOGGER.debug("got OK")
             return True
 
-        _LOGGER.error("error %s", response)
+        if response.startswith("%d,ERR" % trans_id):
+            _LOGGER.error("error %s", response)
 
         return False
 
