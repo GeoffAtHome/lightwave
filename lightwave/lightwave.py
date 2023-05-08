@@ -228,7 +228,7 @@ class LWLink:
             raise
 
         if result:
-            _LOGGER.info("LW broker OK!")
+            _LOGGER.debug("LW broker OK!")
         else:
             if err:
                 _LOGGER.error("LW broker fail (%s)!", err)
